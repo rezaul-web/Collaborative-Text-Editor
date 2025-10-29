@@ -1,0 +1,87 @@
+{
+  "project_info": {
+    "project_number": "763640867371",
+    "firebase_url": "https://daily-news-ca71a-default-rtdb.firebaseio.com",
+    "project_id": "daily-news-ca71a",
+    "storage_bucket": "daily-news-ca71a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763640867371:android:6a9b376709d94bf800186e",
+        "android_client_info": {
+          "package_name": "com.example.collaborativetexteditor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCjSyN4kD_DZ_ZG__2LReKq4YQLFKyj4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763640867371:android:d6ffbe6f538a18e600186e",
+        "android_client_info": {
+          "package_name": "com.example.dailynews"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCjSyN4kD_DZ_ZG__2LReKq4YQLFKyj4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763640867371:android:3d4e8f11bed5115e00186e",
+        "android_client_info": {
+          "package_name": "com.example.expansetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCjSyN4kD_DZ_ZG__2LReKq4YQLFKyj4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763640867371:android:ea5560d364e0968c00186e",
+        "android_client_info": {
+          "package_name": "com.example.onlinetexteditor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCjSyN4kD_DZ_ZG__2LReKq4YQLFKyj4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
