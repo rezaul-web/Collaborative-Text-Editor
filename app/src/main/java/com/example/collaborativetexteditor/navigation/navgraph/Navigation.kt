@@ -18,7 +18,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.collaborativetexteditor.HomeScreen
+import com.example.collaborativetexteditor.home.HomeScreen
 import com.example.collaborativetexteditor.auth.LoginScreen
 import com.example.collaborativetexteditor.auth.SignupScreen
 import com.example.collaborativetexteditor.auth.mvi.AuthViewModel
