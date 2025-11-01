@@ -24,4 +24,5 @@ sealed class EditorIntent {
     data class SetFontSize(val fontSize: TextUnit) : EditorIntent()
     data class SetFontFamily(val family: FontFamily) : EditorIntent()
     data object DeleteFile : EditorIntent()
+    data class AddCollaborator(val email: String) : EditorIntent()
 }

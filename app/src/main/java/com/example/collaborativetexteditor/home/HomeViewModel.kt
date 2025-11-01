@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.collaborativetexteditor.files.data.model.DocFile
 import com.example.collaborativetexteditor.files.usecases.AddOrUpdateFileUseCase
+import com.example.collaborativetexteditor.files.usecases.GetSharedFilesUseCase
 import com.example.collaborativetexteditor.files.usecases.GetUserFilesUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +22,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getUserFilesUseCase: GetUserFilesUseCase,
     private val addFileUseCase: AddOrUpdateFileUseCase,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val getSharedFilesUseCase: GetSharedFilesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -34,6 +37,13 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.LoadFiles -> loadFiles()
             is HomeIntent.CreateNewFile -> createNewFile()
             is HomeIntent.OpenFile -> openFile(intent.fileId)
+            is HomeIntent.Logout -> logout()
+        }
+    }
+    private fun logout() {
+        viewModelScope.launch {
+            firebaseAuth.signOut()
+            _effect.emit(HomeEffect.NavigateToAuth)
         }
     }
 
@@ -42,8 +52,12 @@ class HomeViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             val uid = firebaseAuth.currentUser?.uid ?: return@launch
             try {
-                val files = getUserFilesUseCase(uid)
-                _state.update { it.copy(isLoading = false, files = files) }
+                val ownedJob = async { getUserFilesUseCase(uid) }
+                val sharedJob = async { getSharedFilesUseCase(uid) }
+
+                val owned = ownedJob.await()
+                val shared = sharedJob.await()
+                _state.update { it.copy(isLoading = false, ownedFiles = owned+shared, sharedFiles = shared) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = e.message) }
             }

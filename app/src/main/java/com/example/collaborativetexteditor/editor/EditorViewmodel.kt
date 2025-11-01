@@ -10,6 +10,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.collaborativetexteditor.files.data.model.DocFile
+import com.example.collaborativetexteditor.files.usecases.AddCollaboratorResult
+import com.example.collaborativetexteditor.files.usecases.AddCollaboratorUseCase
 import com.example.collaborativetexteditor.files.usecases.AddOrUpdateFileUseCase
 import com.example.collaborativetexteditor.files.usecases.DeleteFileUseCase
 import com.example.collaborativetexteditor.files.usecases.GetFileByIdUseCase
@@ -38,7 +40,8 @@ class EditorViewmodel @Inject constructor(
     private val getFileByIdUseCase: GetFileByIdUseCase,
     private val observeFileChangesUseCase: ObserveFileChangesUseCase,
     private val removeFileListenerUseCase: RemoveFileListenerUseCase,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val addCollaboratorUseCase: AddCollaboratorUseCase
 
 ) : ViewModel() {
 
@@ -102,6 +105,19 @@ class EditorViewmodel @Inject constructor(
                             _editorEffect.emit(EditorEffect.ShowError("Failed to delete file"))
                         }
                     }
+                }
+                is EditorIntent.AddCollaborator -> {
+                    val fileId = currentFileId ?: return@launch
+                    val result = addCollaboratorUseCase(fileId, intent.email)
+
+                    // 3. Emit feedback to the UI
+                    val message = when (result) {
+                        is AddCollaboratorResult.Success -> "Collaborator added!"
+                        is AddCollaboratorResult.UserNotFound -> "User not found."
+                        is AddCollaboratorResult.IsOwner -> "You are already the owner."
+                        is AddCollaboratorResult.Failure -> result.message
+                    }
+                    _editorEffect.emit(EditorEffect.ShowError(message)) // Re-using ShowError for snackbar
                 }
             }
         }

@@ -55,6 +55,7 @@ class AuthViewModel @Inject constructor(
                 onSuccess = {
                     _state.update { it.copy(isLoading = false, isAuthenticated = true) }
                     _effect.send(AuthEffect.NavigateToHome)
+
                 },
                 onFailure = { it ->
                     _state.update { it.copy(isLoading = false, error = it.error) }

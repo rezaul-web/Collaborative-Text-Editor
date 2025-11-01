@@ -228,4 +228,24 @@ class DocRepositoryImpl @Inject constructor(
             false
         }
     }
+    override suspend fun findUserByEmail(email: String): String? {
+        return try {
+            // This assumes you store user email in /users/{uid}/email
+            // You must have an index on "email" in your Firebase Realtime Database rules for this to be efficient
+            val snapshot = usersRef.orderByChild("email").equalTo(email).get().await()
+
+            if (!snapshot.exists() || snapshot.childrenCount.toInt() == 0) {
+                Log.w("Firebase", "No user found with email: $email")
+                return null
+            }
+
+            // Get the first match (emails should be unique)
+            val userSnapshot = snapshot.children.first()
+            Log.d("Firebase", "Found user ${userSnapshot.key} for email $email")
+            userSnapshot.key // This is the user's UID
+        } catch (e: Exception) {
+            Log.e("FirebaseError", "Error finding user by email: ${e.message}", e)
+            null
+        }
+    }
 }

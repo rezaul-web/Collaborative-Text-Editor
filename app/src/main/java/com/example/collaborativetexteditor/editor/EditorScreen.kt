@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -87,7 +88,8 @@ fun EditorScreen(
 ) {
     val uiState by editorViewmodel.editorState.collectAsState()
     val title = uiState.title
-
+    var showAddCollaboratorDialog by remember { mutableStateOf(false) }
+    var collaboratorEmail by remember { mutableStateOf("") }
     // --- State for Dialog, Snackbar, and Coroutine Scope ---
     var showDeleteDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -117,7 +119,32 @@ fun EditorScreen(
             EditorIntent.OnContentChange(uiState.richTextState.toHtml(), fileId)
         )
     }
-
+    if (showAddCollaboratorDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddCollaboratorDialog = false },
+            title = { Text("Add Collaborator") },
+            text = {
+                OutlinedTextField(
+                    value = collaboratorEmail,
+                    onValueChange = { collaboratorEmail = it },
+                    label = { Text("User Email") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        editorViewmodel.handleIntent(EditorIntent.AddCollaborator(collaboratorEmail))
+                        showAddCollaboratorDialog = false
+                        collaboratorEmail = "" // Reset field
+                    }
+                ) { Text("Add") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddCollaboratorDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -147,7 +174,7 @@ fun EditorScreen(
                 onAddCollaborator = {
                     // TODO: Handle navigation to a "Share" or "Add Collaborator" screen
                     scope.launch {
-                        snackbarHostState.showSnackbar("Add collaborator clicked (not implemented)")
+                        showAddCollaboratorDialog = true
                     }
                 },
                 onDelete = {

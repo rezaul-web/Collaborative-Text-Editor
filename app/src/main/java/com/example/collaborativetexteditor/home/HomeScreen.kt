@@ -20,7 +20,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeScreen(
     onNavigateToEditor: (String) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToAuth: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -32,8 +33,12 @@ fun HomeScreen(
                 is HomeEffect.NavigateToEditor -> {
                     effect.fileId?.let { onNavigateToEditor(it) }
                 }
+
                 is HomeEffect.ShowToast -> {
                     snackbarHostState.showSnackbar(effect.message)
+                }
+                is HomeEffect.NavigateToAuth ->{
+                    onNavigateToAuth()
                 }
             }
         }
@@ -54,9 +59,20 @@ fun HomeScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(title = { Text("Your Documents") })
-        }
-    ) { padding ->
+            TopAppBar(
+                title = { Text("Your Documents") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
+                actions = {
+                   Button(onClick = {
+                       viewModel.onIntent(HomeIntent.Logout)
+                   }) {
+                       Text(text = "Logout")
+                   }
+                }
+            )
+        },
+
+        ) { padding ->
         Box(
             modifier = Modifier
                 .padding(padding)
@@ -67,7 +83,7 @@ fun HomeScreen(
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
 
-                state.files.isEmpty() -> {
+                state.ownedFiles.isEmpty() -> {
                     Text(
                         "No files yet. Tap + to create one!",
                         modifier = Modifier.align(Alignment.Center)
@@ -80,7 +96,7 @@ fun HomeScreen(
                             .fillMaxSize()
                             .padding(8.dp)
                     ) {
-                        items(state.files) { file ->
+                        items(state.ownedFiles) { file ->
                             FileItem(
                                 title = file.title,
                                 onClick = {
@@ -106,7 +122,10 @@ fun FileItem(title: String, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(text = title.ifEmpty { "Untitled " }, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+            Text(
+                text = title.ifEmpty { "Untitled " },
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            )
             Text("Tap to open", style = MaterialTheme.typography.bodySmall)
         }
     }

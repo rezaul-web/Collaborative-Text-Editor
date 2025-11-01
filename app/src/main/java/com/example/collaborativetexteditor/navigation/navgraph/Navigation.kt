@@ -56,7 +56,12 @@ fun Navigation(authViewModel: AuthViewModel = hiltViewModel()) {
         composable("home") {
             HomeScreen(onNavigateToEditor = { fileId ->
                 navController.navigate("editor/$fileId")
-            })
+            },
+                onNavigateToAuth = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                })
         }
 
         composable(

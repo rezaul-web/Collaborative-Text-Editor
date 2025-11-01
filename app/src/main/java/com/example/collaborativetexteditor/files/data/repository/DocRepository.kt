@@ -15,6 +15,7 @@ import com.example.collaborativetexteditor.files.data.model.DocFile
         suspend fun updateFileContent(docId: String, content: String): Boolean
         suspend fun updateFileTitle(docId: String, title: String): Boolean
         suspend fun deleteFile(fileId: String): Boolean
+        suspend fun findUserByEmail(email: String): String?
     }
 
 
