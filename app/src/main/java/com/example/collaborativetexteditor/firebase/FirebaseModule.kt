@@ -1,9 +1,7 @@
-package com.example.collaborativetexteditor.auth
+package com.example.collaborativetexteditor.firebase
 
-
-import com.example.collaborativetexteditor.auth.data.AuthRepository
-import com.example.collaborativetexteditor.auth.data.FirebaseAuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,7 +10,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AuthModule {
+object FirebaseModule {
 
     @Provides
     @Singleton
@@ -20,7 +18,5 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(
-        firebaseAuth: FirebaseAuth
-    ): AuthRepository = FirebaseAuthRepository(firebaseAuth)
+    fun provideFirebaseDatabase(): FirebaseDatabase = FirebaseDatabase.getInstance()
 }

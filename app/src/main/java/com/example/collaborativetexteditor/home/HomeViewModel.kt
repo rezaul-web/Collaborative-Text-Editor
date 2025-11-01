@@ -1,60 +1,80 @@
 package com.example.collaborativetexteditor.home
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ParagraphStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
+import com.example.collaborativetexteditor.files.data.model.DocFile
+import com.example.collaborativetexteditor.files.usecases.AddOrUpdateFileUseCase
+import com.example.collaborativetexteditor.files.usecases.GetUserFilesUseCase
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val getUserFilesUseCase: GetUserFilesUseCase,
+    private val addFileUseCase: AddOrUpdateFileUseCase,
+    private val firebaseAuth: FirebaseAuth
+) : ViewModel() {
 
-    // This is your SINGLE source of truth
-    private val _homeState = MutableStateFlow(HomeState())
-    val homeState = _homeState.asStateFlow()
+    private val _state = MutableStateFlow(HomeState())
+    val state: StateFlow<HomeState> = _state
 
-    fun handleIntent(intent: HomeIntent) {
-        viewModelScope.launch {
-            // Get the state from the MVI state object
-            val rich = _homeState.value.richTextState
+    private val _effect = MutableSharedFlow<HomeEffect>()
+    val effect = _effect.asSharedFlow()
 
-            when (intent) {
-
-                HomeIntent.ToggleBold -> rich.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
-                HomeIntent.ToggleItalic -> rich.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
-                HomeIntent.ToggleUnderline -> rich.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
-                HomeIntent.ToggleStrikethrough -> rich.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
-                HomeIntent.AlignLeft -> rich.toggleParagraphStyle(ParagraphStyle(textAlign = TextAlign.Left))
-                HomeIntent.AlignCenter -> rich.toggleParagraphStyle(ParagraphStyle(textAlign = TextAlign.Center))
-                HomeIntent.AlignRight -> rich.toggleParagraphStyle(ParagraphStyle(textAlign = TextAlign.Right))
-                HomeIntent.ToggleBulletedList -> rich.toggleUnorderedList()
-                HomeIntent.ToggleNumberedList -> rich.toggleOrderedList()
-                is HomeIntent.SetTextColor -> rich.toggleSpanStyle(SpanStyle(color = intent.color))
-
-
-                is HomeIntent.OnContentChange -> {
-                    // repository.updateDocument(intent.content)
-                    println("Content changed, would send to network: ${intent.content}")
-                    return@launch
-                }
-
-                is HomeIntent.SetFontFamily -> rich.toggleSpanStyle(SpanStyle(fontFamily=intent.family))
-                is HomeIntent.SetFontSize -> rich.toggleSpanStyle(SpanStyle(fontSize=intent.fontSize))
-            }
-
-
+    fun onIntent(intent: HomeIntent) {
+        when (intent) {
+            is HomeIntent.LoadFiles -> loadFiles()
+            is HomeIntent.CreateNewFile -> createNewFile()
+            is HomeIntent.OpenFile -> openFile(intent.fileId)
         }
     }
 
+    private fun loadFiles() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            val uid = firebaseAuth.currentUser?.uid ?: return@launch
+            try {
+                val files = getUserFilesUseCase(uid)
+                _state.update { it.copy(isLoading = false, files = files) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
 
+    private fun createNewFile() {
+        viewModelScope.launch {
+            val uid = firebaseAuth.currentUser?.uid ?: return@launch
+            val newId = UUID.randomUUID().toString()
+
+            val newFile = DocFile(
+              docId = newId,
+                title = "Untitled Document",
+                ownerId = uid,
+                collaborators = mapOf(uid to true),
+                content = ""
+            )
+
+            try {
+                addFileUseCase(newId, uid, newFile)
+                _effect.emit(HomeEffect.NavigateToEditor(newId))
+            } catch (e: Exception) {
+                _effect.emit(HomeEffect.ShowToast("Failed to create file"))
+            }
+        }
+    }
+
+    private fun openFile(fileId: String) {
+        viewModelScope.launch {
+            _effect.emit(HomeEffect.NavigateToEditor(fileId))
+        }
+    }
 }

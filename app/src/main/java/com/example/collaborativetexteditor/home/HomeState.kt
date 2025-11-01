@@ -1,10 +1,9 @@
 package com.example.collaborativetexteditor.home
 
-import com.example.collaborativetexteditor.utils.helpers.UiError
-import com.mohamedrejeb.richeditor.model.RichTextState
+import com.example.collaborativetexteditor.files.data.model.DocFile
 
 data class HomeState(
-    val richTextState: RichTextState= RichTextState(),
-    val error: UiError?=null,
-    val isLoading: Boolean=false
+    val isLoading: Boolean = false,
+    val files: List<DocFile> = emptyList(),
+    val error: String? = null
 )
